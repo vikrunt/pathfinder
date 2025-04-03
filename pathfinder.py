@@ -2,8 +2,6 @@ import os
 import pandas as pd
 import streamlit as st
 from pathlib import Path
-from streamlit.runtime.uploaded_file_manager import UploadedFile
-import tempfile
 
 st.set_page_config(page_title="✨ File Path Explorer", layout="wide")
 
@@ -19,16 +17,8 @@ st.markdown("""
 
 st.title("✨ File Path Explorer")
 
-# Browse for folder using file uploader
-uploaded_file = st.file_uploader("📂 Upload any file from the desired folder to select the folder:", type=None)
-
-folder_path = None
-if uploaded_file is not None:
-    temp_dir = tempfile.mkdtemp()
-    temp_path = os.path.join(temp_dir, uploaded_file.name)
-    with open(temp_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    folder_path = os.path.dirname(temp_path)
+# Folder selection
+folder_path = st.text_input("📂 Enter the main folder path:")
 
 if folder_path:
     folder = Path(folder_path)
@@ -58,4 +48,4 @@ if folder_path:
         else:
             st.warning("⚠️ No files found in the selected folder.")
     else:
-        st.error("❌ Invalid folder path. Please upload a valid file.")
+        st.error("❌ Invalid folder path. Please enter a valid path.")
