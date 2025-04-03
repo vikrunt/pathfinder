@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+from io import BytesIO
 
 st.set_page_config(page_title="✨ File Path Explorer", layout="wide")
 
@@ -17,35 +18,43 @@ st.markdown("""
 
 st.title("✨ File Path Explorer")
 
-# Folder selection
-folder_path = st.text_input("📂 Enter the main folder path:")
+# Folder selection using text input
+folder_path = st.text_input("📂 Enter the main folder path (e.g., D:\\Mar-25):")
 
-if folder_path:
-    folder = Path(folder_path)
-    if folder.exists() and folder.is_dir():
-        file_data = []
+if folder_path.strip() != "":
+    try:
+        folder = Path(folder_path).resolve(strict=False)
+        if folder.exists() and folder.is_dir():
+            file_data = []
 
-        # Traverse folder structure
-        for root, dirs, files in os.walk(folder):
-            for file in files:
-                file_path = os.path.join(root, file)
-                file_data.append({"File Name": file, "Path": file_path})
+            # Traverse folder structure
+            for root, dirs, files in os.walk(folder):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    file_data.append({"File Name": file, "Path": file_path})
 
-        # Display and export results
-        if file_data:
-            df = pd.DataFrame(file_data)
-            st.dataframe(df)
+            # Display and export results
+            if file_data:
+                df = pd.DataFrame(file_data)
+                st.dataframe(df)
 
-            # Download button with styling
-            st.markdown("### 📥 Download the file")
-            if st.download_button(
-                label="✨ Download Excel",
-                data=df.to_excel(index=False, engine='openpyxl'),
-                file_name="file_paths.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            ):
-                st.success("✅ File downloaded successfully.")
+                # Prepare Excel for download
+                output = BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False)
+                output.seek(0)
+
+                # Download button with styling
+                st.markdown("### 📥 Download the file")
+                st.download_button(
+                    label="✨ Download Excel",
+                    data=output,
+                    file_name="file_paths.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.warning("⚠️ No files found in the selected folder.")
         else:
-            st.warning("⚠️ No files found in the selected folder.")
-    else:
-        st.error("❌ Invalid folder path. Please enter a valid path.")
+            st.error("❌ Invalid folder path. Please enter a valid path.")
+    except Exception as e:
+        st.error(f"❌ Error: {str(e)}")
