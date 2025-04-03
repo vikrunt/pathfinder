@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+from tkinter import Tk, filedialog
 
 st.set_page_config(page_title="✨ File Path Explorer", layout="wide")
 
@@ -17,8 +18,15 @@ st.markdown("""
 
 st.title("✨ File Path Explorer")
 
-# Folder selection
-folder_path = st.text_input("📂 Enter the main folder path:")
+# Folder selection using file dialog
+if st.button("📂 Select Folder"):
+    root = Tk()
+    root.withdraw()  # Hide the root window
+    folder_path = filedialog.askdirectory()
+    root.destroy()
+    st.session_state['folder_path'] = folder_path
+
+folder_path = st.session_state.get('folder_path', '')
 
 if folder_path:
     folder = Path(folder_path)
